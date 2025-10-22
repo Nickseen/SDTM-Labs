@@ -1,7 +1,6 @@
-package factory.production;
+package domain.factory;
 
-import factory.car.*;
-import factory.engine.*;
+import domain.models.*;
 
 public class CarFactory {
     public Car createCar(CarType type) {

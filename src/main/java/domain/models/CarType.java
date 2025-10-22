@@ -1,4 +1,4 @@
-package factory.car;
+package domain.models;
 
 public enum CarType {
     GAS, ELECTRIC

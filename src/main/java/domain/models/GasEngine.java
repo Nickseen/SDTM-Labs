@@ -1,4 +1,4 @@
-package factory.engine;
+package domain.models;
 
 public class GasEngine implements Engine {
     @Override

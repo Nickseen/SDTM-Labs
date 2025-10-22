@@ -1,6 +1,4 @@
-package factory.car;
-
-import factory.engine.Engine;
+package domain.models;
 
 public class GasCar extends Car {
     public GasCar(Engine engine) {

@@ -1,6 +1,4 @@
-package factory.car;
-
-import factory.engine.Engine;
+package domain.models;
 
 public abstract class Car {
     protected Engine engine;

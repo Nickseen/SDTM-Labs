@@ -9,8 +9,9 @@
     <name>Car Factory</name>
     <description>Java project demonstrating SOLID principles (SRP, OCP, DIP)</description>
 
-        <properties>
+    <properties>
         <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <build>
@@ -20,7 +21,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>factory.Main</mainClass>
+                    <mainClass>client.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
