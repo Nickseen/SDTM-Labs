@@ -26,4 +26,9 @@ public abstract class Car implements CarInterface {
         System.out.println("Model: " + getDescription());
         System.out.println("==================");
     }
+
+    @Override
+    public double getPrice() {
+        return 0;
+    }
 }

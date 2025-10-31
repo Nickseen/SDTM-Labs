@@ -14,9 +14,4 @@ public class RealTestDrive implements TestDrive {
         System.out.println("Test drive completed successfully!");
         System.out.println("===========================================\n");
     }
-
-    @Override
-    public boolean checkEligibility() {
-        return true;
-    }
 }

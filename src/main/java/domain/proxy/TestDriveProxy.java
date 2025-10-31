@@ -3,7 +3,7 @@ package domain.proxy;
 import domain.models.CarInterface;
 
 public class TestDriveProxy implements TestDrive {
-    private RealTestDrive realTestDrive;
+    private TestDrive realTestDrive;
     private int driverAge;
     private boolean hasLicense;
     private int drivingExperience;
@@ -14,8 +14,7 @@ public class TestDriveProxy implements TestDrive {
         this.drivingExperience = experience;
     }
 
-    @Override
-    public boolean checkEligibility() {
+    private boolean checkEligibility() {
         System.out.println("\n🔍 Checking eligibility for test drive...");
         
         if (driverAge < 18) {
@@ -51,12 +50,16 @@ public class TestDriveProxy implements TestDrive {
         
         if (realTestDrive == null) {
             System.out.println("Initializing test drive system...");
-            realTestDrive = new RealTestDrive();
+            realTestDrive = createRealTestDrive();
         }
         
         System.out.println("Logging test drive request...");
         System.out.println("Driver age: " + driverAge + ", Experience: " + drivingExperience + " years");
         
         realTestDrive.startTestDrive(car);
+    }
+
+    protected TestDrive createRealTestDrive() {
+        return new RealTestDrive();
     }
 }

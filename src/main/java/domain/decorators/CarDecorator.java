@@ -2,7 +2,7 @@ package domain.decorators;
 
 import domain.models.CarInterface;
 
-public abstract class CarDecorator implements PricedCar {
+public abstract class CarDecorator implements CarInterface {
     protected CarInterface decoratedCar;
     protected double basePrice;
 

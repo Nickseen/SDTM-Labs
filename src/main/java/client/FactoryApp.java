@@ -156,7 +156,7 @@ public class FactoryApp {
         
         CarInterface selectedCar = createdCars.get(carIndex);
         
-        System.out.println("\n🎨 Available Options:");
+        System.out.println("\n  Available Options:");
         System.out.println("1. GPS Navigation System");
         System.out.println("2. Leather Seats");
         System.out.println("3. Panoramic Sunroof");
