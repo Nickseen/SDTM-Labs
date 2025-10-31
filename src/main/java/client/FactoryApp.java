@@ -1,39 +1,58 @@
 package client;
 
 import domain.models.*;
+import domain.decorators.*;
+import domain.proxy.*;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FactoryApp {
-    private List<CustomCar> customCars = new ArrayList<>();
+    private List<CarInterface> createdCars = new ArrayList<>();
     
     public void run() {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("=== Car Factory - Creational Design Patterns ===\n");
-
         while (true) {
-            System.out.println("1. Create Car (All 3 Patterns Combined)");
-            System.out.println("2. Exit");
-            System.out.print("Choose option: ");
-
+            showMenu();
             int choice = scanner.nextInt();
             scanner.nextLine();
+            System.out.println();
 
             switch (choice) {
                 case 1:
                     createCarWithAllPatterns(scanner);
-                    System.out.println();
                     break;
                 case 2:
-                    System.out.println("Goodbye!");
+                    upgradeCarWithDecorator(scanner);
+                    break;
+                case 3:
+                    testDriveWithProxy(scanner);
+                    break;
+                case 4:
+                    showAllCars();
+                    break;
+                case 5:
+                    System.out.println("Thank you for using Car Factory! Goodbye! 👋\n");
                     scanner.close();
                     return;
                 default:
-                    System.out.println("Invalid option!\n");
+                    System.out.println("❌ Invalid option! Please try again.\n");
             }
         }
+    }
+    
+    private void showMenu() {
+        System.out.println("┌─────────────────────────────────────────────┐");
+        System.out.println("│              MAIN MENU                      │");
+        System.out.println("├─────────────────────────────────────────────┤");
+        System.out.println("│ 1. Create Car (Factory+Builder+Prototype)   │");
+        System.out.println("│ 2. Add Options to Car (Decorator)           │");
+        System.out.println("│ 3. Request Test Drive (Proxy)               │");
+        System.out.println("│ 4. Show All Created Cars                    │");
+        System.out.println("│ 5. Exit                                     │");
+        System.out.println("└─────────────────────────────────────────────┘");
+        System.out.print("Choose option: ");
     }
     
     private void createCarWithAllPatterns(Scanner scanner) {
@@ -44,7 +63,6 @@ public class FactoryApp {
         int engineChoice = scanner.nextInt();
         scanner.nextLine();
         
-        // Factory Method Pattern - Create engine
         Engine engine = engineChoice == 1 ? new GasEngine() : new ElectricEngine();
         System.out.println("✓ Engine selected: " + engine.getType());
         
@@ -60,7 +78,6 @@ public class FactoryApp {
         System.out.print("Steering Wheel Position (Left/Right): ");
         String steering = scanner.nextLine();
         
-        // Builder Pattern - Build custom car
         CustomCar newCar = new CarBuilder("Custom Model", engine)
                 .setBodyType(bodyType)
                 .setTransmission(transmission)
@@ -70,7 +87,7 @@ public class FactoryApp {
         System.out.println("\n✓ Car built successfully!");
         newCar.produce();
         
-        customCars.add(newCar);
+        createdCars.add(newCar);
         
         System.out.println("\n========================================");
         System.out.println("  STEP 3: Prototype Pattern (Optional)");
@@ -81,7 +98,6 @@ public class FactoryApp {
         if (cloneChoice.equalsIgnoreCase("yes")) {
             System.out.println("\nAvailable Body Kit Models:");
             
-            // Display all available models dynamically
             BodyKitModel[] models = BodyKitModel.values();
             for (int i = 0; i < models.length; i++) {
                 System.out.println((i + 1) + ". " + models[i].getDescription());
@@ -91,11 +107,9 @@ public class FactoryApp {
             int modelChoice = scanner.nextInt();
             scanner.nextLine();
             
-            // Prototype Pattern - Clone the car
             CustomCar clonedCar = newCar.clone();
             System.out.println("\nCar cloned successfully!");
             
-            // Apply body kit using OCP-compliant approach
             BodyKitModel selectedModel = BodyKitModel.fromChoice(modelChoice);
             if (selectedModel != null) {
                 selectedModel.applyTo(clonedCar);
@@ -107,14 +121,141 @@ public class FactoryApp {
             System.out.println("\n=== Cloned Car with Body Kit Model ===");
             clonedCar.produce();
             
-            customCars.add(clonedCar);
+            createdCars.add(clonedCar);
         } else {
             System.out.println("\nSkipping prototype pattern.");
             newCar.produce();
         }
         
         System.out.println("\n========================================");
-        System.out.println("  Summary: Total cars created: " + customCars.size());
+        System.out.println("  Summary: Total cars created: " + createdCars.size());
         System.out.println("========================================");
+        System.out.println();
+    }
+    
+    private void upgradeCarWithDecorator(Scanner scanner) {
+        if (createdCars.isEmpty()) {
+            System.out.println("❌ No cars available. Create a car first!\n");
+            return;
+        }
+        
+        System.out.println("═══ Decorator Pattern - Add Options ═══");
+        System.out.println("Select car to add options:");
+        for (int i = 0; i < createdCars.size(); i++) {
+            System.out.println((i + 1) + ". " + createdCars.get(i).getDescription());
+        }
+        
+        System.out.print("\nChoice: ");
+        int carIndex = scanner.nextInt() - 1;
+        scanner.nextLine();
+        
+        if (carIndex < 0 || carIndex >= createdCars.size()) {
+            System.out.println("❌ Invalid selection!\n");
+            return;
+        }
+        
+        CarInterface selectedCar = createdCars.get(carIndex);
+        
+        System.out.println("\n🎨 Available Options:");
+        System.out.println("1. GPS Navigation System");
+        System.out.println("2. Leather Seats");
+        System.out.println("3. Panoramic Sunroof");
+        System.out.println("4. Premium Audio System");
+        System.out.println("5. All Options (Premium Package)");
+        
+        System.out.print("\nSelect option to add: ");
+        int optionChoice = scanner.nextInt();
+        scanner.nextLine();
+        
+        CarInterface decoratedCar = selectedCar;
+        
+        switch (optionChoice) {
+            case 1:
+                decoratedCar = new GPSDecorator(selectedCar);
+                System.out.println("\n✓ GPS Navigation added!");
+                break;
+            case 2:
+                decoratedCar = new LeatherSeatsDecorator(selectedCar);
+                System.out.println("\n✓ Leather Seats added!");
+                break;
+            case 3:
+                decoratedCar = new SunroofDecorator(selectedCar);
+                System.out.println("\n✓ Panoramic Sunroof added!");
+                break;
+            case 4:
+                decoratedCar = new PremiumAudioDecorator(selectedCar);
+                System.out.println("\n✓ Premium Audio System added!");
+                break;
+            case 5:
+                decoratedCar = new GPSDecorator(selectedCar);
+                decoratedCar = new LeatherSeatsDecorator(decoratedCar);
+                decoratedCar = new SunroofDecorator(decoratedCar);
+                decoratedCar = new PremiumAudioDecorator(decoratedCar);
+                System.out.println("\n✓ All Premium Options added!");
+                break;
+            default:
+                System.out.println("❌ Invalid option!\n");
+                return;
+        }
+        
+        decoratedCar.showDetails();
+        createdCars.set(carIndex, decoratedCar);
+        System.out.println();
+    }
+    
+    private void testDriveWithProxy(Scanner scanner) {
+        if (createdCars.isEmpty()) {
+            System.out.println("❌ No cars available for test drive. Create a car first!\n");
+            return;
+        }
+        
+        System.out.println("═══ Proxy Pattern - Test Drive Access Control ═══");
+        
+        System.out.print("Your age: ");
+        int age = scanner.nextInt();
+        
+        System.out.print("Do you have a driver's license? (yes/no): ");
+        scanner.nextLine();
+        String licenseInput = scanner.nextLine();
+        boolean hasLicense = licenseInput.equalsIgnoreCase("yes");
+        
+        System.out.print("Years of driving experience: ");
+        int experience = scanner.nextInt();
+        scanner.nextLine();
+        
+        TestDrive testDriveProxy = new TestDriveProxy(age, hasLicense, experience);
+        
+        System.out.println("\nSelect car for test drive:");
+        for (int i = 0; i < createdCars.size(); i++) {
+            System.out.println((i + 1) + ". " + createdCars.get(i).getDescription());
+        }
+        
+        System.out.print("\nChoice: ");
+        int carIndex = scanner.nextInt() - 1;
+        scanner.nextLine();
+        
+        if (carIndex < 0 || carIndex >= createdCars.size()) {
+            System.out.println("❌ Invalid selection!\n");
+            return;
+        }
+        
+        CarInterface selectedCar = createdCars.get(carIndex);
+        
+        testDriveProxy.startTestDrive(selectedCar);
+        System.out.println();
+    }
+    
+    private void showAllCars() {
+        if (createdCars.isEmpty()) {
+            System.out.println("❌ No cars created yet!\n");
+            return;
+        }
+        
+        System.out.println("═══ All Created Cars ═══");
+        for (int i = 0; i < createdCars.size(); i++) {
+            System.out.println("\n" + (i + 1) + ".");
+            createdCars.get(i).showDetails();
+        }
+        System.out.println();
     }
 }

@@ -17,7 +17,6 @@ public class CustomCar extends Car implements Cloneable {
         this.bodyKits = new ArrayList<>();
     }
 
-    // Prototype Pattern - Clone method
     @Override
     public CustomCar clone() {
         try {
@@ -35,7 +34,12 @@ public class CustomCar extends Car implements Cloneable {
 
     @Override
     public void produce() {
-        System.out.println("=== Custom Car Production ===");
+        showDetails();
+    }
+
+    @Override
+    public void showDetails() {
+        System.out.println("=== Custom Car Details ===");
         System.out.println("Model: " + name);
         System.out.println("Engine: " + engine.getType());
         System.out.println("Body Type: " + bodyType);
@@ -44,7 +48,7 @@ public class CustomCar extends Car implements Cloneable {
         if (!bodyKits.isEmpty()) {
             System.out.println("Body Kits: " + String.join(", ", bodyKits));
         }
-        System.out.println("============================");
+        System.out.println("==========================");
     }
 
     public String getBodyType() {
@@ -63,3 +67,4 @@ public class CustomCar extends Car implements Cloneable {
         return bodyKits;
     }
 }
+

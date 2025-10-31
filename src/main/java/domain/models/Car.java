@@ -1,6 +1,6 @@
 package domain.models;
 
-public abstract class Car {
+public abstract class Car implements CarInterface {
     protected Engine engine;
     protected String name;
 
@@ -15,5 +15,15 @@ public abstract class Car {
         return name;
     }
 
-    
+    @Override
+    public String getDescription() {
+        return name + " with " + engine.getType();
+    }
+
+    @Override
+    public void showDetails() {
+        System.out.println("=== Car Details ===");
+        System.out.println("Model: " + getDescription());
+        System.out.println("==================");
+    }
 }
