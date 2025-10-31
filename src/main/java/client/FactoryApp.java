@@ -80,12 +80,14 @@ public class FactoryApp {
         
         if (cloneChoice.equalsIgnoreCase("yes")) {
             System.out.println("\nAvailable Body Kit Models:");
-            System.out.println("1. ABT Sportsline (Sport Spoiler, Side Skirts, Carbon Diffuser)");
-            System.out.println("2. M-Performance (Carbon Fiber Hood, Racing Spoiler, M Side Skirts)");
-            System.out.println("3. AMG Line (AMG Spoiler, AMG Side Skirts, Chrome Elements)");
-            System.out.println("4. RS Package (RS Front Bumper, RS Side Blades, RS Rear Spoiler)");
             
-            System.out.print("\nSelect body kit model (1-4): ");
+            // Display all available models dynamically
+            BodyKitModel[] models = BodyKitModel.values();
+            for (int i = 0; i < models.length; i++) {
+                System.out.println((i + 1) + ". " + models[i].getDescription());
+            }
+            
+            System.out.print("\nSelect body kit model (1-" + models.length + "): ");
             int modelChoice = scanner.nextInt();
             scanner.nextLine();
             
@@ -93,34 +95,13 @@ public class FactoryApp {
             CustomCar clonedCar = newCar.clone();
             System.out.println("\nCar cloned successfully!");
             
-            // Add predefined body kits based on model
-            switch (modelChoice) {
-                case 1:
-                    clonedCar.addBodyKit("Sport Spoiler");
-                    clonedCar.addBodyKit("Side Skirts");
-                    clonedCar.addBodyKit("Carbon Diffuser");
-                    System.out.println("Applied: ABT Sportsline Kit");
-                    break;
-                case 2:
-                    clonedCar.addBodyKit("Carbon Fiber Hood");
-                    clonedCar.addBodyKit("Racing Spoiler");
-                    clonedCar.addBodyKit("M Side Skirts");
-                    System.out.println("Applied: M-Performance Kit");
-                    break;
-                case 3:
-                    clonedCar.addBodyKit("AMG Spoiler");
-                    clonedCar.addBodyKit("AMG Side Skirts");
-                    clonedCar.addBodyKit("Chrome Elements");
-                    System.out.println("Applied: AMG Line Kit");
-                    break;
-                case 4:
-                    clonedCar.addBodyKit("RS Front Bumper");
-                    clonedCar.addBodyKit("RS Side Blades");
-                    clonedCar.addBodyKit("RS Rear Spoiler");
-                    System.out.println("Applied: RS Package Kit");
-                    break;
-                default:
-                    System.out.println("Invalid choice, no kits applied.");
+            // Apply body kit using OCP-compliant approach
+            BodyKitModel selectedModel = BodyKitModel.fromChoice(modelChoice);
+            if (selectedModel != null) {
+                selectedModel.applyTo(clonedCar);
+                System.out.println("Applied: " + selectedModel.getDisplayName());
+            } else {
+                System.out.println("Invalid choice, no kits applied.");
             }
             
             System.out.println("\n=== Cloned Car with Body Kit Model ===");
