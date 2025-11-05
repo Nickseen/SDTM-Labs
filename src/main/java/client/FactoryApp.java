@@ -37,7 +37,7 @@ public class FactoryApp {
                     scanner.close();
                     return;
                 default:
-                    System.out.println("❌ Invalid option! Please try again.\n");
+                    System.out.println(" Invalid option! Please try again.\n");
             }
         }
     }
@@ -135,7 +135,7 @@ public class FactoryApp {
     
     private void upgradeCarWithDecorator(Scanner scanner) {
         if (createdCars.isEmpty()) {
-            System.out.println("❌ No cars available. Create a car first!\n");
+            System.out.println(" No cars available. Create a car first!\n");
             return;
         }
         
@@ -150,7 +150,7 @@ public class FactoryApp {
         scanner.nextLine();
         
         if (carIndex < 0 || carIndex >= createdCars.size()) {
-            System.out.println("❌ Invalid selection!\n");
+            System.out.println(" Invalid selection!\n");
             return;
         }
         
