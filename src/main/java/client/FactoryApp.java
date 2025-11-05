@@ -194,7 +194,7 @@ public class FactoryApp {
                 System.out.println("\n✓ All Premium Options added!");
                 break;
             default:
-                System.out.println("❌ Invalid option!\n");
+                System.out.println(" Invalid option!\n");
                 return;
         }
         
@@ -205,7 +205,7 @@ public class FactoryApp {
     
     private void testDriveWithProxy(Scanner scanner) {
         if (createdCars.isEmpty()) {
-            System.out.println("❌ No cars available for test drive. Create a car first!\n");
+            System.out.println(" No cars available for test drive. Create a car first!\n");
             return;
         }
         
@@ -235,7 +235,7 @@ public class FactoryApp {
         scanner.nextLine();
         
         if (carIndex < 0 || carIndex >= createdCars.size()) {
-            System.out.println("❌ Invalid selection!\n");
+            System.out.println(" Invalid selection!\n");
             return;
         }
         
@@ -247,7 +247,7 @@ public class FactoryApp {
     
     private void showAllCars() {
         if (createdCars.isEmpty()) {
-            System.out.println("❌ No cars created yet!\n");
+            System.out.println(" No cars created yet!\n");
             return;
         }
         
