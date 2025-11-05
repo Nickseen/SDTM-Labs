@@ -167,36 +167,15 @@ public class FactoryApp {
         int optionChoice = scanner.nextInt();
         scanner.nextLine();
         
-        CarInterface decoratedCar = selectedCar;
+        CarOption option = CarOption.fromChoice(optionChoice);
         
-        switch (optionChoice) {
-            case 1:
-                decoratedCar = new GPSDecorator(selectedCar);
-                System.out.println("\n✓ GPS Navigation added!");
-                break;
-            case 2:
-                decoratedCar = new LeatherSeatsDecorator(selectedCar);
-                System.out.println("\n✓ Leather Seats added!");
-                break;
-            case 3:
-                decoratedCar = new SunroofDecorator(selectedCar);
-                System.out.println("\n✓ Panoramic Sunroof added!");
-                break;
-            case 4:
-                decoratedCar = new PremiumAudioDecorator(selectedCar);
-                System.out.println("\n✓ Premium Audio System added!");
-                break;
-            case 5:
-                decoratedCar = new GPSDecorator(selectedCar);
-                decoratedCar = new LeatherSeatsDecorator(decoratedCar);
-                decoratedCar = new SunroofDecorator(decoratedCar);
-                decoratedCar = new PremiumAudioDecorator(decoratedCar);
-                System.out.println("\n✓ All Premium Options added!");
-                break;
-            default:
-                System.out.println(" Invalid option!\n");
-                return;
+        if (option == null) {
+            System.out.println(" Invalid option!\n");
+            return;
         }
+        
+        CarInterface decoratedCar = option.applyTo(selectedCar);
+        System.out.println("\n✓ " + option.getDisplayName() + " added!");
         
         decoratedCar.showDetails();
         createdCars.set(carIndex, decoratedCar);
