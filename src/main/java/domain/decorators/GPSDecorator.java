@@ -5,7 +5,7 @@ import domain.models.CarInterface;
 public class GPSDecorator extends CarDecorator {
     
     public GPSDecorator(CarInterface car) {
-        super(car, 0); // Не добавляем цену, просто опцию
+        super(car, 0); 
     }
 
     @Override
