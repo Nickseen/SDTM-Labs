@@ -1,608 +1,428 @@
-# Car Factory - Structural Design Patterns
+# Laboratory Work #3: Behavioral Design Patterns
 
-**Laboratory Work #2** - Software Design Techniques and Mechanisms  
-**Author:** Petcov Nicola
-
----
-
-## Objectives
-1. Study and understand Structural Design Patterns
-2. As a continuation of the previous laboratory work, implement additional functionalities using structural design patterns
-3. Implement at least 3 structural design patterns in the system:
-   - **Decorator Pattern** - for dynamic feature addition
-   - **Proxy Pattern** - for access control
-   - **Facade Pattern** - for simplified interface to complex subsystems
-
-## Domain Area
-**Automotive Manufacturing** - Custom Car Factory System
-
-This project extends the car factory system with structural design patterns. Building upon the creational patterns from Lab #1, the system now offers:
-- Dynamic car customization with optional features (Decorator Pattern)
-- Controlled test drive access with validation (Proxy Pattern)
-- Enhanced car interface for flexible feature composition
+**Author:** Nicolai Petcov 
+**Group:** FAF-233  
+**Variant:** Car Factory System
 
 ---
 
-## Introduction
+## Introduction / Theory / Motivation
 
-In software engineering, **Structural Design Patterns** are concerned with how classes and objects are composed to form larger structures. These patterns focus on simplifying the design by identifying simple ways to realize relationships between entities. Unlike creational patterns that deal with object creation, structural patterns deal with object composition and typically identify simple ways to realize relationships between different objects.
+Behavioral design patterns are concerned with algorithms and the assignment of responsibilities between objects. These patterns characterize complex control flow that's difficult to follow at run-time and shift focus away from control flow to let you concentrate on the way objects are interconnected.
 
-### Key Structural Patterns Implemented:
+In this laboratory work, we implemented **two** behavioral design patterns to enhance the Car Factory system:
 
-1. **Decorator Pattern** - Dynamically adds responsibilities to objects without modifying their structure
-2. **Proxy Pattern** - Provides a surrogate or placeholder to control access to an object
-3. **Facade Pattern** - Provides a unified, simplified interface to a complex subsystem
+1. **Strategy Pattern** – to provide flexible payment methods (Cash, Card, Leasing) for purchasing cars.
+2. **Command Pattern** – to allow undoing/redoing configuration choices during car creation (engine, body type, transmission, steering).
 
-This laboratory work extends the Car Factory system from Lab #1 (which implemented Factory Method, Builder, and Prototype patterns) by adding structural patterns that enhance functionality and control access to the system's features.
+### Why These Patterns?
 
----
+- **Strategy Pattern** is essential when you have multiple algorithms (payment methods) that should be interchangeable at runtime. It eliminates large `if-else` or `switch` blocks and makes adding new payment methods easy without modifying existing code (Open-Closed Principle).
 
-## Structural Patterns Summary
+- **Command Pattern** enables us to encapsulate configuration actions (like choosing engine type) as command objects. This allows us to:
+  - Support undo/redo operations at each configuration step.
+  - Provide users with full control over their choices.
+  - Queue or log operations.
+  - Decouple the invoker (user menu) from the receiver (car configuration).
 
-| Pattern | Purpose | Implementation | Benefits |
-|---------|---------|----------------|----------|
-| **Decorator** | Add features dynamically | `GPSDecorator`, `LeatherSeatsDecorator`, `SunroofDecorator`, `PremiumAudioDecorator` | Flexible composition, no class explosion |
-| **Proxy** | Control access to resources | `TestDriveProxy` with eligibility validation | Security, lazy initialization, logging |
-| **Facade** | Simplify complex subsystems | `FactoryApp` unified interface | Reduced complexity, low coupling |
-
-**All three patterns work together:**
-- **Facade** provides simple interface to the client
-- **Decorator** adds features when requested through facade
-- **Proxy** protects resources when accessed through facade
+Together, these patterns demonstrate how behavioral design patterns facilitate communication and flexibility in a system.
 
 ---
 
-## Design Patterns Implementation
+## Implementation & Explanation
 
-### 1. Decorator Pattern 🎨
-**Purpose:** Dynamically add optional features to cars without modifying the base car classes
+### 1. Strategy Pattern – Payment Methods
 
-**Problem Solved:**  
-Without the Decorator pattern, we would need to create separate classes for every possible combination of car options (CarWithGPS, CarWithGPSAndLeatherSeats, etc.), leading to class explosion. The Decorator pattern allows us to add features dynamically at runtime.
+**Location:**  
+`src/main/java/domain/strategy/`
 
-**Implementation:**
+**Files:**
+- `PaymentStrategy.java` (interface)
+- `CashPayment.java`
+- `CardPayment.java`
+- `LeasingPayment.java`
 
-The pattern consists of:
-- **CarInterface**: Common interface for both base cars and decorators
-- **CarDecorator**: Abstract decorator class
-- **Concrete Decorators**: GPSDecorator, LeatherSeatsDecorator, SunroofDecorator, PremiumAudioDecorator
+**Main Idea:**
 
-**Code Example:**
+The Strategy pattern defines a family of algorithms (payment methods), encapsulates each one, and makes them interchangeable. The client (`FactoryApp`) can choose which payment strategy to use at runtime without knowing the implementation details.
+
+**Code Snippets:**
+
+**PaymentStrategy.java:**
 ```java
-// Abstract Decorator
-public abstract class CarDecorator implements CarInterface {
-    protected CarInterface decoratedCar;
-    
-    public CarDecorator(CarInterface car, double basePrice) {
-        this.decoratedCar = car;
-        this.basePrice = basePrice;
-    }
-    
-    @Override
-    public String getDescription() {
-        return decoratedCar.getDescription();
-    }
-}
+package domain.strategy;
 
-// Concrete Decorator
-public class GPSDecorator extends CarDecorator {
-    public GPSDecorator(CarInterface car) {
-        super(car, 0);
-    }
-    
-    @Override
-    public String getDescription() {
-        return decoratedCar.getDescription() + " + GPS Navigation";
-    }
-    
-    @Override
-    public void showDetails() {
-        decoratedCar.showDetails();
-        System.out.println("    GPS Navigation System");
-    }
+public interface PaymentStrategy {
+    boolean pay(double amount);
+    String getName();
 }
 ```
 
-**Usage:**
+**CashPayment.java:**
 ```java
-CarInterface car = new CustomCar(...);
-car = new GPSDecorator(car);
-car = new LeatherSeatsDecorator(car);
-car = new SunroofDecorator(car);
-// Now the car has all these features dynamically added
-```
+package domain.strategy;
 
-**Available Options:**
-- **GPS Navigation System** - Advanced navigation with real-time traffic
-- **Leather Seats** - Premium leather interior
-- **Panoramic Sunroof** - Large glass roof panel
-- **Premium Audio System** - High-fidelity sound system
-- **Premium Package** - All options combined
-
-**Benefits:**
-- ✅ Add features dynamically at runtime
-- ✅ Avoid class explosion for every feature combination
-- ✅ Follow Open-Closed Principle (open for extension, closed for modification)
-- ✅ Single Responsibility - each decorator adds one feature
-- ✅ Flexible composition - combine decorators in any order
-
----
-
-### 2. Proxy Pattern 🔐
-**Purpose:** Control access to test drive functionality with eligibility checks
-
-**Problem Solved:**  
-Direct access to test drives without validation could be dangerous. The Proxy pattern provides a protective layer that validates driver credentials before allowing access to the actual test drive service.
-
-**Implementation:**
-
-The pattern consists of:
-- **TestDrive**: Common interface for both proxy and real test drive
-- **TestDriveProxy**: Proxy that controls access with validation
-- **RealTestDrive**: Actual test drive implementation
-
-**Code Example:**
-```java
-// Proxy with access control
-public class TestDriveProxy implements TestDrive {
-    private TestDrive realTestDrive;
-    private int driverAge;
-    private boolean hasLicense;
-    private int drivingExperience;
-    
-    public TestDriveProxy(int age, boolean hasLicense, int experience) {
-        this.driverAge = age;
-        this.hasLicense = hasLicense;
-        this.drivingExperience = experience;
-    }
-    
-    private boolean checkEligibility() {
-        if (driverAge < 18) {
-            System.out.println("❌ Access DENIED: Must be 18+");
-            return false;
-        }
-        if (!hasLicense) {
-            System.out.println("❌ Access DENIED: License required");
-            return false;
-        }
-        if (drivingExperience < 1) {
-            System.out.println("❌ Access DENIED: 1+ year experience required");
-            return false;
-        }
+public class CashPayment implements PaymentStrategy {
+    @Override
+    public boolean pay(double amount) {
+        System.out.println("Processing cash payment of $" + String.format("%.2f", amount) + " — completed.");
         return true;
     }
-    
+
     @Override
-    public void startTestDrive(CarInterface car) {
-        if (!checkEligibility()) {
-            return;
-        }
-        
-        if (realTestDrive == null) {
-            realTestDrive = new RealTestDrive();
-        }
-        
-        realTestDrive.startTestDrive(car);
+    public String getName() {
+        return "Cash";
     }
 }
 ```
 
-**Validation Rules:**
-- ✅ Driver must be at least 18 years old
-- ✅ Valid driver's license required
-- ✅ Minimum 1 year of driving experience
+**CardPayment.java:**
+```java
+package domain.strategy;
 
-**Benefits:**
-- ✅ Access control and validation before expensive operations
-- ✅ Lazy initialization of the real test drive object
-- ✅ Logging and monitoring capabilities
-- ✅ Protection from unauthorized access
-- ✅ Separation of concerns - validation logic separate from test drive logic
+public class CardPayment implements PaymentStrategy {
+    private final double cardFeeRate = 0.02; // 2% fee
+
+    @Override
+    public boolean pay(double amount) {
+        double fee = amount * cardFeeRate;
+        double total = amount + fee;
+        System.out.println("Processing card payment: amount=$" + String.format("%.2f", amount)
+                + ", fee=$" + String.format("%.2f", fee) + ", total=$" + String.format("%.2f", total));
+        System.out.println("Payment completed via card.");
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return "Card (2% fee)";
+    }
+}
+```
+
+**LeasingPayment.java:**
+```java
+package domain.strategy;
+
+public class LeasingPayment implements PaymentStrategy {
+    private final int months = 36;
+    private final double annualRate = 0.05; // 5% yearly interest
+
+    @Override
+    public boolean pay(double amount) {
+        double monthlyRate = annualRate / 12.0;
+        double monthly = (amount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+        System.out.println("Processing leasing for $" + String.format("%.2f", amount) + " over " + months + " months.");
+        System.out.println("Estimated monthly payment: $" + String.format("%.2f", monthly));
+        System.out.println("Leasing contract simulated (no real payment). ");
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return "Leasing (36 months)";
+    }
+}
+```
+
+**Integration in FactoryApp.java:**
+
+```java
+private void purchaseCarWithPaymentStrategy(Scanner scanner) {
+    // ... select car ...
+    
+    System.out.println("Select payment method:");
+    System.out.println("1. Cash");
+    System.out.println("2. Card");
+    System.out.println("3. Leasing");
+    System.out.print("Choice: ");
+    int payChoice = scanner.nextInt();
+    scanner.nextLine();
+
+    PaymentStrategy strategy;
+    switch (payChoice) {
+        case 1: strategy = new CashPayment(); break;
+        case 2: strategy = new CardPayment(); break;
+        case 3: strategy = new LeasingPayment(); break;
+        default:
+            System.out.println("Invalid payment method!\n");
+            return;
+    }
+
+    System.out.println("Executing payment via: " + strategy.getName());
+    boolean ok = strategy.pay(amount);
+    if (ok) {
+        System.out.println("Purchase completed for: " + selected.getDescription() + "\n");
+    }
+}
+```
+
+**Motivation:**
+- Adding new payment methods (e.g., cryptocurrency, bank transfer) requires only creating a new class implementing `PaymentStrategy`.
+- No need to modify existing payment logic.
+- Follows **Open-Closed Principle** and **Single Responsibility Principle**.
 
 ---
 
-### 3. Facade Pattern 🎯
-**Purpose:** Provide a unified, simplified interface to the complex car factory subsystem
+### 2. Command Pattern – Undo/Redo During Car Configuration
 
-**Problem Solved:**  
-The car factory system involves multiple complex subsystems (Factory Method, Builder, Prototype, Decorator, Proxy). Without a Facade, the client would need to understand and interact with all these patterns directly, leading to tight coupling and complex client code. The Facade pattern provides a simple, high-level interface that hides this complexity.
+**Location:**  
+`src/main/java/domain/command/`
 
-**Implementation:**
+**Files:**
+- `Command.java` (interface)
+- `CommandHistory.java` (manages undo/redo stacks)
+- `ChooseEngineCommand.java`
+- `SetBodyTypeCommand.java`
+- `SetTransmissionCommand.java`
+- `SetSteeringCommand.java`
 
-The `FactoryApp` class acts as a Facade that:
-- Encapsulates all complex pattern interactions
-- Provides simple menu-driven interface
-- Manages the lifecycle of created cars
-- Coordinates between different subsystems
+**Main Idea:**
 
-**Code Example:**
+The Command pattern encapsulates each configuration step (choosing engine, body type, transmission, steering) as a command object. This allows users to undo/redo their choices during the car creation process, providing full control over configuration.
+
+**Code Snippets:**
+
+**Command.java:**
 ```java
-public class FactoryApp {
-    private List<CarInterface> createdCars = new ArrayList<>();
+package domain.command;
+
+public interface Command {
+    void execute();
+    void undo();
+}
+```
+
+**CommandHistory.java:**
+```java
+package domain.command;
+
+import java.util.Stack;
+
+public class CommandHistory {
+    private final Stack<Command> undoStack = new Stack<>();
+    private final Stack<Command> redoStack = new Stack<>();
+
+    public void execute(Command cmd) {
+        cmd.execute();
+        undoStack.push(cmd);
+        redoStack.clear();
+    }
+
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
+    }
+
+    public void undo() {
+        if (!undoStack.isEmpty()) {
+            Command cmd = undoStack.pop();
+            cmd.undo();
+            redoStack.push(cmd);
+        }
+    }
+
+    public boolean canRedo() {
+        return !redoStack.isEmpty();
+    }
+
+    public void redo() {
+        if (!redoStack.isEmpty()) {
+            Command cmd = redoStack.pop();
+            cmd.execute();
+            undoStack.push(cmd);
+        }
+    }
+}
+```
+
+**ChooseEngineCommand.java:**
+```java
+package domain.command;
+
+import domain.models.Engine;
+
+public class ChooseEngineCommand implements Command {
+    private Engine[] currentEngine;
+    private Engine newEngine;
+    private Engine previousEngine;
+
+    public ChooseEngineCommand(Engine[] currentEngine, Engine newEngine) {
+        this.currentEngine = currentEngine;
+        this.newEngine = newEngine;
+    }
+
+    @Override
+    public void execute() {
+        previousEngine = currentEngine[0];
+        currentEngine[0] = newEngine;
+        System.out.println("✓ Engine set to: " + newEngine.getType());
+    }
+
+    @Override
+    public void undo() {
+        currentEngine[0] = previousEngine;
+        String type = (previousEngine != null) ? previousEngine.getType() : "None";
+        System.out.println("↶ Undid engine choice. Current: " + type);
+    }
+}
+```
+
+**Integration in FactoryApp.java:**
+
+The Command pattern is integrated directly into the **"Create Car"** menu option (option 1). At each configuration step (engine, body type, transmission, steering), users can:
+- Enter their choice
+- Type `u` to undo the last action
+- Type `r` to redo an undone action
+- Type `c` to continue to the next step
+
+```java
+private void createCarWithAllPatterns(Scanner scanner) {
+    CommandHistory history = new CommandHistory();
     
-    public void run() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            showMenu();
-            int choice = scanner.nextInt();
-            
-            switch (choice) {
-                case 1: createCarWithAllPatterns(scanner); break;
-                case 2: upgradeCarWithDecorator(scanner); break;
-                case 3: testDriveWithProxy(scanner); break;
-                case 4: showAllCars(); break;
-                case 5: return;
+    Engine[] engineHolder = new Engine[1];
+    String[] bodyTypeHolder = new String[1];
+    String[] transmissionHolder = new String[1];
+    String[] steeringHolder = new String[1];
+    
+    // STEP 1: Choose Engine with undo/redo
+    while (true) {
+        System.out.println("\n--- STEP 1: Select Engine Type ---");
+        String current = (engineHolder[0] != null) ? engineHolder[0].getType() : "None";
+        System.out.println("Current: " + current);
+        System.out.print("Choose (1-Gas, 2-Electric) or (u-undo, r-redo, c-continue): ");
+        String input = scanner.nextLine().trim();
+        
+        if (input.equalsIgnoreCase("u")) {
+            if (history.canUndo()) history.undo();
+            else System.out.println("Nothing to undo.");
+        } else if (input.equalsIgnoreCase("r")) {
+            if (history.canRedo()) history.redo();
+            else System.out.println("Nothing to redo.");
+        } else if (input.equalsIgnoreCase("c")) {
+            if (engineHolder[0] != null) break;
+            else System.out.println("Please select an engine first!");
+        } else {
+            try {
+                int choice = Integer.parseInt(input);
+                Engine engine = (choice == 1) ? new GasEngine() : new ElectricEngine();
+                ChooseEngineCommand cmd = new ChooseEngineCommand(engineHolder, engine);
+                history.execute(cmd);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input!");
             }
         }
     }
     
-    // Facade method - hides complexity of Factory + Builder + Prototype
-    private void createCarWithAllPatterns(Scanner scanner) {
-        // Step 1: Factory Method Pattern
-        Engine engine = createEngine(scanner);
-        
-        // Step 2: Builder Pattern
-        CustomCar car = buildCar(scanner, engine);
-        
-        // Step 3: Prototype Pattern (optional)
-        optionallyCloneCar(scanner, car);
-        
-        createdCars.add(car);
-    }
+    // Similar loops for body type, transmission, and steering...
     
-    // Facade method - hides complexity of Decorator Pattern
-    private void upgradeCarWithDecorator(Scanner scanner) {
-        CarInterface selectedCar = selectCar(scanner);
-        CarInterface decoratedCar = applyDecorators(scanner, selectedCar);
-        updateCar(selectedCar, decoratedCar);
-    }
-    
-    // Facade method - hides complexity of Proxy Pattern
-    private void testDriveWithProxy(Scanner scanner) {
-        TestDrive proxy = createProxyWithCredentials(scanner);
-        CarInterface selectedCar = selectCar(scanner);
-        proxy.startTestDrive(selectedCar);
-    }
+    // Build final car
+    CustomCar newCar = new CarBuilder("Custom Model", engineHolder[0])
+            .setBodyType(bodyTypeHolder[0])
+            .setTransmission(transmissionHolder[0])
+            .setSteeringWheelPosition(steeringHolder[0])
+            .build();
 }
 ```
 
-**Simplified Client Code:**
-```java
-// Without Facade - Complex client code
-Engine engine = new GasEngine();
-CustomCar car = new CarBuilder("Model", engine)
-    .setBodyType("SUV")
-    .setTransmission("Automatic")
-    .build();
-CarInterface decorated = new GPSDecorator(car);
-decorated = new LeatherSeatsDecorator(decorated);
-TestDrive proxy = new TestDriveProxy(25, true, 3);
-proxy.startTestDrive(decorated);
-// Client needs to know about all patterns!
-
-// With Facade - Simple client code
-FactoryApp app = new FactoryApp();
-app.run();
-// Client only interacts with simple menu!
-```
-
-**Subsystems Hidden by Facade:**
-1. **Engine Factory** (Factory Method Pattern)
-2. **Car Builder** (Builder Pattern)
-3. **Car Cloning** (Prototype Pattern)
-4. **Feature Decoration** (Decorator Pattern)
-5. **Test Drive Access Control** (Proxy Pattern)
-
-**Benefits:**
-- ✅ Simplified interface for complex subsystems
-- ✅ Reduced coupling between client and subsystems
-- ✅ Client doesn't need to know about pattern implementations
-- ✅ Easy to use - just call menu options
-- ✅ Centralized control over all operations
-- ✅ Hides complexity of coordinating 5 different patterns
+**Motivation:**
+- Users can freely experiment with different configurations and undo mistakes.
+- The command pattern decouples the UI (menu) from business logic (car configuration).
+- Makes the system extensible: new configuration steps can be added as new Command classes.
+- Demonstrates real-world use case: configuration wizards with undo/redo support.
 
 ---
 
-### 3. Integration with Creational Patterns (From Lab #1)
+## Results / Screenshots / Conclusions
 
-The structural patterns work seamlessly with the creational patterns implemented in Lab #1:
+### Results
 
-**Combined Workflow:**
+- **Two behavioral patterns** successfully integrated:
+  - **Strategy Pattern** for flexible payment methods (Cash, Card, Leasing).
+  - **Command Pattern** for undo/redo during car configuration steps.
+  
+- The project structure remains clean and organized:
+  ```
+  src/main/java/
+  ├── client/
+  │   ├── Main.java
+  │   └── FactoryApp.java (updated with Command pattern in option 1)
+  └── domain/
+      ├── command/
+      │   ├── Command.java
+      │   ├── CommandHistory.java
+      │   ├── ChooseEngineCommand.java
+      │   ├── SetBodyTypeCommand.java
+      │   ├── SetTransmissionCommand.java
+      │   └── SetSteeringCommand.java
+      ├── strategy/
+      │   ├── PaymentStrategy.java
+      │   ├── CashPayment.java
+      │   ├── CardPayment.java
+      │   └── LeasingPayment.java
+      ├── decorators/
+      ├── factory/
+      ├── models/
+      └── proxy/
+  ```
 
-1. **Factory Method** → Create car with specific engine type
-2. **Builder Pattern** → Configure car specifications
-3. **Prototype Pattern** → Clone and add body kits (optional)
-4. **Decorator Pattern** → Add optional features dynamically ✨ NEW
-5. **Proxy Pattern** → Request controlled test drive ✨ NEW
-6. **Facade Pattern** → All of the above through simple menu interface ✨ NEW
+- All patterns (Creational + Structural + Behavioral) work together seamlessly in a single client (`FactoryApp`).
 
-**Example Flow:**
-```java
-// 1. Create base car (Factory + Builder)
-Engine engine = new GasEngine(); // Factory Method
-CustomCar car = new CarBuilder("Model S", engine)
-    .setBodyType("Sedan")
-    .setTransmission("Automatic")
-    .build(); // Builder Pattern
+### Demonstration
 
-// 2. Add optional features (Decorator)
-CarInterface upgradedCar = new GPSDecorator(car);
-upgradedCar = new LeatherSeatsDecorator(upgradedCar);
+#### Command Pattern Demo (Integrated in "Create Car"):
+1. User selects option 1 "Create Car".
+2. **Step 1:** Choose engine (1-Gas, 2-Electric)
+   - User can type `u` to undo, `r` to redo, `c` to continue
+3. **Step 2:** Enter body type
+   - User can type `u` to undo previous choices, `r` to redo, `c` to continue
+4. **Step 3:** Enter transmission
+   - Full undo/redo support
+5. **Step 4:** Enter steering wheel position
+   - Full undo/redo support
+6. Car is built with final configuration.
 
-// 3. Request test drive (Proxy)
-TestDrive testDrive = new TestDriveProxy(25, true, 3);
-testDrive.startTestDrive(upgradedCar);
-```
+**Key Feature:** At any step, users can undo back to previous steps, change their mind, and redo forward. This provides complete control over the configuration process.
 
----
+#### Strategy Pattern Demo:
+1. User creates a car.
+2. User selects option 3 "Purchase Car".
+3. User chooses payment method:
+   - **Cash:** Full payment processed immediately.
+   - **Card:** Payment + 2% fee calculated and processed.
+   - **Leasing:** Monthly payment calculated over 36 months.
 
-## Combined Pattern Flow
+### Screenshots
 
-The application integrates both Creational (Lab #1) and Structural (Lab #2) patterns:
+#### Command Pattern - Undo/Redo Functionality
+![Command Pattern](screenshots/Command_pattern.png)
 
-**Complete Workflow:**
+*Figure 1: Command pattern in action - users can undo/redo their configuration choices at each step during car creation.*
 
-**Lab #1 Patterns (Creational):**
-- **STEP 1: Factory Method** → Select engine type  
-- **STEP 2: Builder Pattern** → Configure car specifications  
-- **STEP 3: Prototype Pattern** → Clone and add body kits (optional)
+#### Strategy Pattern - Payment Methods
+![Strategy Pattern](screenshots/Strategy_pattern.png)
 
-**Lab #2 Patterns (Structural):** ✨
-- **STEP 4: Decorator Pattern** → Add optional features dynamically
-- **STEP 5: Proxy Pattern** → Request controlled test drive
-- **STEP 6: Facade Pattern** → Unified interface hiding all complexity through `FactoryApp`
+*Figure 2: Strategy pattern - different payment methods (Cash, Card, Leasing) with different implementations.*
 
-## Project Structure
+#### Strategy Pattern - Encapsulation
+![Strategy Encapsulation](screenshots/Strategy_incapsulation.png)
 
-```
-src/main/java/
-├── client/                          # Client layer (Single client for entire system)
-│   ├── Main.java                   # Application entry point
-│   └── FactoryApp.java             # Unified UI & application logic
-├── domain/
-│   ├── decorators/                 # Decorator Pattern (Lab #2) ✨
-│   │   ├── CarDecorator.java       # Abstract decorator
-│   │   ├── GPSDecorator.java       # GPS navigation option
-│   │   ├── LeatherSeatsDecorator.java  # Leather seats option
-│   │   ├── SunroofDecorator.java   # Sunroof option
-│   │   └── PremiumAudioDecorator.java  # Premium audio option
-│   ├── proxy/                      # Proxy Pattern (Lab #2) ✨
-│   │   ├── TestDrive.java          # Test drive interface
-│   │   ├── TestDriveProxy.java     # Proxy with access control
-│   │   └── RealTestDrive.java      # Real test drive implementation
-│   ├── factory/                    # Factory Pattern (Lab #1)
-│   │   └── CarFactory.java         # Factory Method pattern
-│   └── models/                     # Domain models
-│       ├── Car.java                # Abstract car class
-│       ├── CarInterface.java       # Common interface for cars & decorators ✨
-│       ├── CarBuilder.java         # Builder pattern
-│       ├── CarType.java            # Enum for car types
-│       ├── CustomCar.java          # Custom car with Prototype pattern
-│       ├── BodyKitModel.java       # Predefined body kit models
-│       ├── ElectricCar.java        # Concrete electric car
-│       ├── GasCar.java             # Concrete gas car
-│       ├── Engine.java             # Engine interface
-│       ├── ElectricEngine.java     # Electric engine implementation
-│       └── GasEngine.java          # Gas engine implementation
-```
+*Figure 3: Strategy pattern encapsulation - each payment strategy hides its implementation details (fee rates, calculations, etc.) behind the PaymentStrategy interface.*
 
-**Key Architectural Decisions:**
-- ✅ Single client (`FactoryApp.java`) for the entire system
-- ✅ Patterns grouped by responsibility (decorators, proxy, factory, models)
-- ✅ Clear separation between creational and structural patterns
-- ✅ All object creation buried in domain logic, not exposed to client
+### Conclusions
 
-## How to Run
+Behavioral design patterns enhance the flexibility and maintainability of software systems by:
 
-```bash
-# 1. Navigate to project root
-cd /home/fuckedupupd/SDTM-Labs
+1. **Encapsulating behavior** – Strategy and Command both encapsulate behaviors (payment and configuration actions) into separate objects.
+2. **Supporting extensibility** – New payment methods or commands can be added without modifying existing code.
+3. **Improving testability** – Each strategy and command can be tested independently.
+4. **Following SOLID principles** – Especially Open-Closed Principle (open for extension, closed for modification).
 
-# 2. Compile the project
-mvn clean compile
+The integration of behavioral patterns with previously implemented creational and structural patterns demonstrates how different pattern categories complement each other to build robust, scalable systems.
 
-# 3. Run the application
-mvn exec:java
-```
+**Key Takeaways:**
+- Strategy pattern is perfect for scenarios where you have multiple algorithms/methods for the same task.
+- Command pattern is ideal when you need undo/redo, queuing, or logging of operations.
+- Both patterns improve code organization and reduce coupling between components.
 
 ---
 
-## Screenshots
-
-### 1. Main Menu - Facade Pattern ✨
-![Main Menu](screenshots/1-main-menu.png)
-
-*Main menu showing the **Facade Pattern** in action - `FactoryApp` provides a simple unified interface that hides the complexity of 5 design patterns (Factory Method, Builder, Prototype, Decorator, Proxy)*
-
-**Key Point:** Instead of the client needing to understand and coordinate all patterns, the Facade provides simple menu options that handle all complexity internally.
-
----
-
-### 2. Create Car Flow (Creational Patterns - Lab #1)
-
-#### Step 1: Factory Method - Engine Selection
-![Factory Method](screenshots/2-factory-method.png)
-
-*Selecting engine type using Factory Method pattern*
-
-#### Step 2: Builder Pattern - Car Configuration
-![Builder Pattern](screenshots/3-builder-pattern.png)
-
-*Building custom car with specifications*
-
-#### Step 3: Prototype Pattern - Clone & Body Kits
-![Prototype Pattern](screenshots/4-prototype-pattern.png)
-
-*Cloning car and applying predefined body kit models*
-
----
-
-### 3. Decorator Pattern - Adding Optional Features ✨
-![Decorator Pattern](screenshots/5-decorator-pattern.png)
-
-*Dynamically adding features to an existing car (GPS, Leather Seats, Sunroof, Premium Audio)*
-
-**Demonstrates:**
-- Selecting a car from created cars list
-- Choosing optional features to add
-- Features stacking on top of each other
-- Updated car details showing all added options
-
----
-
-### 4. Proxy Pattern - Test Drive Access Control ✨
-![Proxy Pattern Success](screenshots/6-proxy-success.png)
-
-*Successful test drive after passing eligibility checks*
-
-**Demonstrates:**
-- Driver information input (age, license, experience)
-- Eligibility validation passing
-- Access granted to test drive
-- Test drive execution
-
----
-
-![Proxy Pattern Denied](screenshots/7-proxy-denied.png)
-
-*Test drive denied due to failed eligibility check*
-
-**Demonstrates:**
-- Failed validation (age < 18, no license, or insufficient experience)
-- Access control protecting the system
-- Clear error messages explaining denial reasons
-
----
-
-### 5. All Created Cars View
-![All Cars](screenshots/8-all-cars.png)
-
-*Displaying all created and customized cars with their features*
-
----
-
-## SOLID Principles Applied
-
-| Principle | Implementation | Example |
-|-----------|---------------|---------|
-| **Single Responsibility** | Each class has one clear purpose | `CarDecorator` only adds features, `TestDriveProxy` only controls access |
-| **Open-Closed** | Open for extension, closed for modification | Add new decorators without modifying existing code |
-| **Liskov Substitution** | Decorators and proxies implement same interfaces | `CarInterface` implemented by both cars and decorators |
-| **Interface Segregation** | Small, focused interfaces | `TestDrive` interface has only one method |
-| **Dependency Inversion** | Depend on abstractions | `CarDecorator` depends on `CarInterface`, not concrete classes |
-
----
-
-## Key Features
-
-### Creational Patterns (Lab #1)
-- ✅ Factory Method for engine creation
-- ✅ Builder Pattern for complex car construction
-- ✅ Prototype Pattern for car cloning and body kits
-
-### Structural Patterns (Lab #2) ✨
-- ✅ **Decorator Pattern** - Dynamic feature composition
-- ✅ **Proxy Pattern** - Access control and validation
-- ✅ **Facade Pattern** - Unified simplified interface for complex subsystems
-- ✅ **Seamless Integration** - Patterns work together cohesively
-
-### Architecture
-- ✅ **Single Client** for the entire system (`FactoryApp.java`)
-- ✅ **Clean Package Structure** - patterns grouped by responsibility
-- ✅ **Pure Java** - no external frameworks
-- ✅ **Interactive CLI** with clear user guidance
-- ✅ **Extensible Design** for future enhancements
-- ✅ **SOLID Principles** throughout the codebase
-
----
-
-## Technologies
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Language** | Java 21 | Core programming language |
-| **Build Tool** | Maven 3.x | Dependency management and build |
-| **Architecture** | Layered | Client → Domain (Factory, Models, Decorators, Proxy) |
-| **Patterns** | 6 Design Patterns | 3 Creational + 3 Structural |
-
----
-
-## Conclusions
-
-### Lab #2 Achievements:
-
-This laboratory work successfully extends the Car Factory system with **Structural Design Patterns**, demonstrating how they complement the creational patterns from Lab #1.
-
-#### Key Accomplishments:
-
-1. **Decorator Pattern Implementation**
-   - Enables dynamic feature addition without modifying base car classes
-   - Avoids class explosion (no need for hundreds of car+feature combinations)
-   - Provides flexible, runtime composition of features
-   - Follows Open-Closed Principle perfectly
-
-2. **Proxy Pattern Implementation**
-   - Adds essential access control for test drive functionality
-   - Validates driver credentials before allowing access
-   - Implements lazy initialization of expensive resources
-   - Provides logging and monitoring capabilities
-
-3. **Facade Pattern Implementation**
-   - Provides unified interface to complex subsystem of 5 patterns
-   - Hides complexity from client code
-   - Single point of interaction (`FactoryApp`) for entire system
-   - Simplifies usage - client doesn't need to understand pattern internals
-   - Reduces coupling between client and domain logic
-
-4. **Seamless Pattern Integration**
-   - All 6 patterns (3 creational + 3 structural) work together cohesively
-   - Facade coordinates all patterns transparently
-   - Clean separation of concerns with proper package structure
-   - Object creation mechanisms are buried in domain logic
-
-4. **Architecture Quality**
-   - SOLID principles applied throughout
-   - Clean, maintainable, and extensible codebase
-   - Proper separation between client and domain layers
-   - Professional package organization by responsibility
-   - Facade pattern ensures low coupling and high cohesion
-
-#### Real-World Applications:
-
-The implemented patterns solve real software engineering problems:
-
-- **Decorator**: Similar to how UI frameworks add features to components (borders, scrollbars, etc.) or Java I/O streams
-- **Proxy**: Like authentication middleware in web applications, virtual proxies for lazy loading, or remote proxies in distributed systems
-- **Facade**: Like APIs that hide complex backend logic, or simplified SDKs that wrap complex libraries
-
-#### Learning Outcomes:
-
-- Understanding how structural patterns organize object relationships
-- Practical experience combining creational and structural patterns
-- Appreciation for composition over inheritance (Decorator pattern)
-- Importance of controlled access in complex systems (Proxy pattern)
-- Value of simplified interfaces for complex subsystems (Facade pattern)
-- How patterns can work together to create robust architectures
-
-
----
-
-**Interactive Menu:**
-1. Create Car with creational patterns (Factory + Builder + Prototype)
-2. Add features with Decorator pattern
-3. Request test drive with Proxy pattern validation
-4. View all created cars
-5. Exit
-
----
-
-## Repository Information
-
-- **Course**: Software Design Techniques and Mechanisms
-- **Laboratory**: #2 - Structural Design Patterns
-- **Author**: Petcov Nicola
-- **Patterns Implemented**: 
-  - Creational (Lab #1): Factory Method, Builder, Prototype
-  - Structural (Lab #2): Decorator, Proxy, Facade
-
----
