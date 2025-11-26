@@ -1,8 +1,8 @@
 package client;
 
 import domain.models.*;
-import domain.decorators.*;
 import domain.proxy.*;
+import domain.iterator.*;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +36,9 @@ public class FactoryApp {
                     showAllCars();
                     break;
                 case 6:
+                    viewCarOptionsWithIterator(scanner);
+                    break;
+                case 7:
                     System.out.println("Thank you for using Car Factory! Goodbye! 👋\n");
                     scanner.close();
                     return;
@@ -53,8 +56,9 @@ public class FactoryApp {
         System.out.println("│ 2. Add Options to Car (Decorator)           │");
         System.out.println("│ 3. Purchase Car (Payment Strategy)          │");
         System.out.println("│ 4. Request Test Drive (Proxy)               │");
-        System.out.println("│ 5. Show All Created Cars                    │");
-        System.out.println("│ 6. Exit                                     │");
+            System.out.println("│ 5. Show All Created Cars                    │");
+            System.out.println("│ 6. View Car Options (Iterator)              │");
+            System.out.println("│ 7. Exit                                     │");
         System.out.println("└─────────────────────────────────────────────┘");
         System.out.print("Choose option: ");
     }
@@ -293,7 +297,7 @@ public class FactoryApp {
         int optionChoice = scanner.nextInt();
         scanner.nextLine();
         
-        CarOption option = CarOption.fromChoice(optionChoice);
+        domain.decorators.CarOption option = domain.decorators.CarOption.fromChoice(optionChoice);
         
         if (option == null) {
             System.out.println(" Invalid option!\n");
@@ -424,5 +428,38 @@ public class FactoryApp {
             createdCars.get(i).showDetails();
         }
         System.out.println();
+    }
+    
+    private void viewCarOptionsWithIterator(Scanner scanner) {
+        System.out.println("═══ Iterator Pattern - Browse Car Options ═══");
+        
+        // Create collection of available options
+        CarOptionsCollection optionsCollection = new CarOptionsCollection();
+        optionsCollection.addOption(new domain.iterator.CarOption("GPS Navigation System", 1500.00));
+        optionsCollection.addOption(new domain.iterator.CarOption("Leather Seats", 2000.00));
+        optionsCollection.addOption(new domain.iterator.CarOption("Panoramic Sunroof", 1800.00));
+        optionsCollection.addOption(new domain.iterator.CarOption("Premium Audio System", 2500.00));
+        optionsCollection.addOption(new domain.iterator.CarOption("Sport Package", 3500.00));
+        optionsCollection.addOption(new domain.iterator.CarOption("Winter Package", 1200.00));
+        
+        System.out.println("\nBrowsing available car options using Iterator Pattern:");
+        System.out.println("Total options: " + optionsCollection.getSize());
+        System.out.println("\n--- Options List ---");
+        
+        // Use iterator to traverse options
+        domain.iterator.Iterator<domain.iterator.CarOption> iterator = optionsCollection.createIterator();
+        int count = 1;
+        double totalPrice = 0;
+        
+        while (iterator.hasNext()) {
+            domain.iterator.CarOption option = iterator.next();
+            System.out.println(count + ". " + option);
+            totalPrice += option.getPrice();
+            count++;
+        }
+        
+        System.out.println("\nTotal price if all options selected: $" + totalPrice);
+        System.out.println("\nIterator pattern allows sequential access to options");
+        System.out.println("without exposing the internal collection structure.\n");
     }
 }
